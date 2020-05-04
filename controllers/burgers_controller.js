@@ -1,52 +1,43 @@
-const express = require("express");
-const burger = require("../models/burger");
+//Set up Dependencies
+var express = require('express');
+var router = express.Router();
+var burger = require('../models/burger.js');
 
-const router = express.Router();
-
-router.get("/", function(req, res) {
-  burger.selectAll(function(data) {
-    const hdbrsObj = {
-      burgers: data
-    };
-    console.log(hdbrsObj);
-    res.render("index", hdbrsObj);
-  });
-
-  router.post("/api/burgers", function(req, res) {
-    burger.insertOne(
-      ["burger_name", "devoured"],
-      [req.body.burger_name, req.body.devoured],
-      function(result) {
-        // Send back the ID of new burger
-        res.json({ id: result.insertId });
-      }
-    );
-  });
-  router.put("/api/burgers/:id", function(req, res) {
-    let condition = "id = " + req.params.id;
-
-    console.log("condition", condition);
-    burger.updateOne({ devoured: req.body.devoured }, condition, function(
-      result
-    ) {
-      if (result.changedRows === 0) {
-        return res.status(404).end();
-      } else {
-        res.status(200).end();
-      }
-    });
-  });
-  router.delete("/api/burgers/:id", function(req, res) {
-    let condition = "id = " + req.params.id;
-    console.log("condition", condition);
-
-    burger.deleteOne(condition, function(result) {
-      if (result.changedRows === 0) {
-        return res.status(404).end();
-      } else {
-        res.status(200).end();
-      }
-    });
-  });
+//get route -> index
+router.get('/', function(req, res) {
+    res.redirect('/burgers');
 });
+
+router.get('/burgers', function(req, res) {
+    //express callback response by calling burger.selectAllBurger
+    burger.all(function(burger_data) {
+        //wrapper for orm.js that using MySQL query callback will return burger_data, render to index with handlebar
+        res.render('index', { burger_data });
+    });
+});
+
+//post route -> back to index
+router.post('/burgers/create', function(req, res) {
+    if (req.body.burger_name == '') {
+        console.log('No burger name entered');
+        res.redirect('/');
+    } else {
+        //takes the request object using it as input for buger.addBurger
+        burger.create(req.body.burger_name, function(result) {
+            //wrapper for orm.js that using MySQL insert callback will return a log to console, render back to index with handle
+            console.log(result);
+            res.redirect('/');
+        });
+    }
+});
+
+//put route -> back to index
+router.put('/burgers/update', function(req, res) {
+    burger.update(req.body.burger_id, function(result) {
+        //wrapper for orm.js that using MySQL update callback will return a log to console, render back to index with handle
+        console.log(result);
+        res.redirect('/');
+    });
+});
+
 module.exports = router;
