@@ -22,7 +22,7 @@ function translateSql(ob) {
   return arr.toString();
 }
 
-const orm = {
+let orm = {
   selectAll: function(table, cb) {
     let dbQuery = "SELECT * FROM " + table + ";";
 
